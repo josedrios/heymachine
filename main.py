@@ -1,31 +1,31 @@
+import os
+from openai import OpenAI
 import speech_recognition as sr
-import pyttsx3
 
-def listen_for_prefix(recognizer, microphone, engine, keyword="hey josie"):
+# pip3.11 install ...
+def listen_for_prefix(recognizer, microphone, prefixes):
     while True:
-        print("Waiting for prefix...")
+        print("State: Waiting...")
         try:
             with microphone as source:
                 recognizer.adjust_for_ambient_noise(source)
-                audio = recognizer.listen(source, timeout=10)  
+                audio = recognizer.listen(source, timeout=20)  
             command = recognizer.recognize_google(audio).lower() 
-            print("Phrase:", command)
+            print(f"State: Text received :'{command}'")
             
-            if keyword in command:
-                print("Prefix detected, waiting for command...")
-                engine.say("Whats up daddy")
-                engine.runAndWait()
+            if command in prefixes:
+                print("State\033[92m: Prefix detected\033[0m")
                 return True  
         except (sr.WaitTimeoutError, sr.UnknownValueError):
-            print("ERR: Coulnd not understand/No prefix detected")
+            print("State: Not Understandable/Timeout Error")
         except sr.RequestError as e:
-            print(f"Speech recognition error: {e}")
+            print("State: {e}")
 
 def get_command(recognizer, microphone):
     with microphone as source:
-        print("Listening for command...")
         recognizer.adjust_for_ambient_noise(source)
-        audio = recognizer.listen(source, phrase_time_limit=10)
+        audio = recognizer.listen(source, phrase_time_limit=12)
+        print("Listening for command...")
     try:
         command = recognizer.recognize_google(audio).lower()
         print("Command:", command)
@@ -36,20 +36,44 @@ def get_command(recognizer, microphone):
         print(f"Speech recognition error: {e}")
     return None
 
-def process_command(recognizer, microphone, command):
+def process_command(client, command):
     print("Processing command:", command)
-    command = command.upper()
-    print("Processed command:", command)
+    completion = client.chat.completions.create(
+        # model="gpt-3.5-turbo",
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant."},
+            {
+                "role": "user",
+                "content": command
+            }
+        ]
+    )
+    print("Response:\n", completion.choices[0].message.content)
 
 if __name__ == "__main__":
+    client = OpenAI()
     recognizer = sr.Recognizer()
     microphone = sr.Microphone()
-    engine = pyttsx3.init()
+    prefixes = [
+        'yo machine',
+        'hello machine',
+        'hey machine',
+        'hi machine',
+        'howdy machine',
+        'sup machine',
+        # Common misinterpretations
+        'time machine',
+        'play machine',
+        'your machine',
+        'neo machine',
+        'slot machine',
+        ]
 
     while True:
-        if listen_for_prefix(recognizer, microphone, engine,keyword="hey josie"):
+        if listen_for_prefix(recognizer, microphone, prefixes):
             command = get_command(recognizer, microphone)
             if command:
-                process_command(recognizer, microphone, command)
+                process_command(client, command)
 
                 
