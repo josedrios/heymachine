@@ -1,4 +1,5 @@
 import os
+import tkinter
 from openai import OpenAI
 import speech_recognition as sr
 
@@ -39,14 +40,10 @@ def get_command(recognizer, microphone):
 def process_command(client, command):
     print("Processing command:", command)
     completion = client.chat.completions.create(
-        # model="gpt-3.5-turbo",
-        model="gpt-4o",
-        messages=[
+    model="gpt-4o",
+    messages=[
             {"role": "system", "content": "You are a helpful assistant."},
-            {
-                "role": "user",
-                "content": command
-            }
+            {"role": "user", "content": command}
         ]
     )
     print("Response:\n", completion.choices[0].message.content)
@@ -55,6 +52,9 @@ if __name__ == "__main__":
     client = OpenAI()
     recognizer = sr.Recognizer()
     microphone = sr.Microphone()
+    m = tkinter.Tk()
+    m.mainloop()
+
     prefixes = [
         'yo machine',
         'hello machine',
