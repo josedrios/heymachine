@@ -5,7 +5,8 @@ import time
 from openai import OpenAI
 import speech_recognition as sr
 
-def create_gui(main_color):
+def create_gui():
+    main_color = '#f15e22'
     window = tkinter.Tk()
     window.title('Hey Machine')
 
@@ -18,7 +19,7 @@ def create_gui(main_color):
     tkinter.Label(window, bg=main_color, text="Hey Machine", fg='black').pack(pady = 10)
 
     navbar = tkinter.Frame(window, bg=main_color, height = 30)
-    navbar.pack(fill='x', padx=40)
+    navbar.pack(fill='x', padx=40, pady=4)
 
     previous = tkinter.Button(
         navbar, 
@@ -69,11 +70,11 @@ def create_gui(main_color):
     frame = tkinter.Frame(response, bg='white')
     response.create_window((10, 10), window=frame, anchor='nw')
 
-    return window
+    return window, frame
 
 def create_thread():
     print("Starting thread...")
-    thread = threading.Thread(target=main())
+    thread = threading.Thread(target=main)
     thread.daemon = True
     thread.start()
 
@@ -97,7 +98,7 @@ def main():
         if listen_for_prefix(recognizer, microphone, prefixes):
             command = get_command(recognizer, microphone)
             if command:
-                process_command(client, command)
+                process_command(client, command, frame)
 
 # pip3.11 install ...
 def listen_for_prefix(recognizer, microphone, prefixes):
@@ -121,8 +122,8 @@ def listen_for_prefix(recognizer, microphone, prefixes):
 def get_command(recognizer, microphone):
     with microphone as source:
         recognizer.adjust_for_ambient_noise(source)
-        audio = recognizer.listen(source, phrase_time_limit=12)
         print("Listening for command...")
+        audio = recognizer.listen(source, phrase_time_limit=12)
     try:
         command = recognizer.recognize_google(audio).lower()
         print("Command:", command)
@@ -133,7 +134,7 @@ def get_command(recognizer, microphone):
         print(f"Speech recognition error: {e}")
     return None
 
-def process_command(client, command):
+def process_command(client, command, frame):
     print("Processing command:", command)
     completion = client.chat.completions.create(
     model="gpt-4o",
@@ -145,11 +146,19 @@ def process_command(client, command):
     response = completion.choices[0].message.content
     print("Response:\n", response)
 
+    # frame.after(0, lambda: tkinter.Label(frame, text = response, bg='red', wraplength=280).pack(anchor='w', pady=2))
+    def add_label():
+        label = tkinter.Label(frame, text=response, bg='red', wraplength=280)
+        label.pack(anchor='w', pady=2)
+        # Update scrollregion
+        frame.update_idletasks()
+        frame.master.configure(scrollregion=frame.bbox('all'))
+    frame.after(0, add_label)
+
 if __name__ == "__main__":
     client = OpenAI()
     recognizer = sr.Recognizer()
     microphone = sr.Microphone()
-    color = '#f15e22'
-    window = create_gui(color)
+    window, frame = create_gui()
     window.mainloop()
                 
