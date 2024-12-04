@@ -16,32 +16,10 @@ def create_gui():
 
     window.configure(bg=main_color)
 
-    tkinter.Label(window, bg=main_color, text="Hey Machine", fg='black').pack(pady = 10)
+    tkinter.Label(window, bg=main_color, text="Hey Machine", fg='white', font='Helvetica 18 bold').pack(pady = 10)
 
     navbar = tkinter.Frame(window, bg=main_color, height = 30)
     navbar.pack(fill='x', padx=40, pady=4)
-
-    previous = tkinter.Button(
-        navbar, 
-        text='<', 
-        bg=main_color, 
-        bd=0, 
-        highlightthickness=0, 
-        highlightbackground=main_color,  
-    )
-    previous.grid(row=0, column=0)
-
-    next = tkinter.Button(
-        navbar,
-        text='>', 
-        bg=main_color, 
-        bd=0, 
-        highlightthickness=0, 
-        highlightbackground=main_color,  
-    #     command= lambda: frame.after(0, lambda: add_nothing(frame, "jose\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"))
-    # 
-    )
-    next.grid(row=0, column=1)
 
     container = tkinter.Frame(window, height=400, bg='white', bd=2, relief='solid')
     container.pack(fill='x', padx=40)
@@ -75,12 +53,6 @@ def create_gui():
         command=lambda: threading.Thread(target=lambda: main(frame)).start()
     )
     play.grid(row=0, column=2)
-    
-    # newlines = 'SOP\n' * 60
-    # def add_nothing(frame, text):
-    #     label = tkinter.Label(frame, text=text, bg='green', wraplength=280)
-    #     label.pack(anchor='w', pady=2)
-    # #frame.after(0, add_nothing(frame, newlines))
     return window
 
 def main(frame):
@@ -147,7 +119,7 @@ def process_command(client, command, frame):
     completion = client.chat.completions.create(
     model="gpt-4o",
     messages=[
-            {"role": "system", "content": "You are a helpful assistant who gives slight concise answers."},
+            {"role": "system", "content": "You respond concisely, avoid markdown syntax entirely, and keep a casual, friendly tone."},
             {"role": "user", "content": command}
         ]
     )
@@ -155,7 +127,9 @@ def process_command(client, command, frame):
     print("Response:\n", response)
 
     def add_label(frame, text):
-        label = tkinter.Label(frame, text=text, bg='red', wraplength=280)
+        text = text.replace("*","")
+        text = text.replace("`","")
+        label = tkinter.Label(frame, text=text, bg='white', fg='black', wraplength=280, justify='left')
         label.pack(anchor='w', pady=2)
     frame.after(0, lambda: add_label(frame, response))
 
