@@ -38,19 +38,10 @@ def create_gui():
         bd=0, 
         highlightthickness=0, 
         highlightbackground=main_color,  
+    #     command= lambda: frame.after(0, lambda: add_nothing(frame, "jose\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"))
+    # 
     )
     next.grid(row=0, column=1)
-
-    play = tkinter.Button(
-        navbar,
-        text='▶', 
-        command = create_thread,
-        bg=main_color, 
-        bd=0, 
-        highlightthickness=0, 
-        highlightbackground=main_color,  
-    )
-    play.grid(row=0, column=2)
 
     container = tkinter.Frame(window, height=400, bg='white', bd=2, relief='solid')
     container.pack(fill='x', padx=40)
@@ -68,17 +59,34 @@ def create_gui():
 
     # Create a frame inside the canvas for content
     frame = tkinter.Frame(response, bg='white')
+    def reset_scrollregion(event):
+        response.configure(scrollregion=response.bbox("all"))
+    frame.bind("<Configure>", reset_scrollregion)
+
     response.create_window((10, 10), window=frame, anchor='nw')
 
-    return window, frame
+    play = tkinter.Button(
+        navbar,
+        text='▶', 
+        bg=main_color, 
+        bd=0, 
+        highlightthickness=0, 
+        highlightbackground=main_color,  
+        command=lambda: threading.Thread(target=lambda: main(frame)).start()
+    )
+    play.grid(row=0, column=2)
+    
+    # newlines = 'SOP\n' * 60
+    # def add_nothing(frame, text):
+    #     label = tkinter.Label(frame, text=text, bg='green', wraplength=280)
+    #     label.pack(anchor='w', pady=2)
+    # #frame.after(0, add_nothing(frame, newlines))
+    return window
 
-def create_thread():
-    print("Starting thread...")
-    thread = threading.Thread(target=main)
-    thread.daemon = True
-    thread.start()
-
-def main():
+def main(frame):
+    client = OpenAI()
+    recognizer = sr.Recognizer()
+    microphone = sr.Microphone()
     prefixes = [
         'yo machine',
         'hello machine',
@@ -146,19 +154,12 @@ def process_command(client, command, frame):
     response = completion.choices[0].message.content
     print("Response:\n", response)
 
-    # frame.after(0, lambda: tkinter.Label(frame, text = response, bg='red', wraplength=280).pack(anchor='w', pady=2))
-    def add_label():
-        label = tkinter.Label(frame, text=response, bg='red', wraplength=280)
+    def add_label(frame, text):
+        label = tkinter.Label(frame, text=text, bg='red', wraplength=280)
         label.pack(anchor='w', pady=2)
-        # Update scrollregion
-        frame.update_idletasks()
-        frame.master.configure(scrollregion=frame.bbox('all'))
-    frame.after(0, add_label)
+    frame.after(0, lambda: add_label(frame, response))
 
 if __name__ == "__main__":
-    client = OpenAI()
-    recognizer = sr.Recognizer()
-    microphone = sr.Microphone()
-    window, frame = create_gui()
+    window = create_gui()
     window.mainloop()
                 
