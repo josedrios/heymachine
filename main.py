@@ -119,7 +119,7 @@ def process_command(client, command, frame):
     completion = client.chat.completions.create(
     model="gpt-4o",
     messages=[
-            {"role": "system", "content": "You respond concisely, avoid markdown syntax entirely, and keep a casual, friendly tone."},
+            {"role": "system", "content": "You respond concisely and keep a casual, friendly tone."},
             {"role": "user", "content": command}
         ]
     )
@@ -127,8 +127,8 @@ def process_command(client, command, frame):
     print("Response:\n", response)
 
     def add_label(frame, text):
-        text = text.replace("*","")
-        text = text.replace("`","")
+        text = text.replace("*","") # Change words between to caps
+        text = text.replace("`","") # Change synax to ----\n and \n----
         label = tkinter.Label(frame, text=text, bg='white', fg='black', wraplength=280, justify='left')
         label.pack(anchor='w', pady=2)
     frame.after(0, lambda: add_label(frame, response))
